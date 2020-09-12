@@ -1,0 +1,88 @@
+private Vector3 FormulatePosition (GameObject go) // go is the object which has just been spawned
+	{
+		//set some local variables up
+		int counterLimit = 100;
+		int counter = 0;
+		float scale = 0.0f;
+
+		//save the size of the game object which has just been spawned
+		Vector3 goSize = go.GetComponentInChildren<MeshRenderer> ().bounds.size;
+
+		//set the possible range of randomed values to be equal to the size of the object which has just been spawned
+		posibleSpawningRange = goSize;
+
+		//Grab first random offset to check against all other objects
+		Vector3 currentPosOffset = ProduceRandomOffset (goSize, scale);
+
+		for (int i = 0; i < allSpawnedEntities.Count; i++) {
+
+			// distance = sqrt( (v1.x - v2.x)^2  +  (v1.y - v2.y)^2  + (v1.z - v2.z)^2  ); 
+			//get the distance between the sapend object and the next entity already spawned
+ 			float distance = Vector3.Distance (go.transform.position + currentPosOffset, allSpawnedEntities[i].transform.position);
+
+			//get the size of the next entity already spawned
+			Vector3 currentEntitySize =  allSpawnedEntities[i].GetComponentInChildren<MeshRenderer> ().bounds.size;
+			//---currentEntitySize = currentEntitySize / 2f;
+
+			//check to see if the distance is less than that of each
+			if (distance < (goSize.x) + (currentEntitySize.x) &&
+			    distance < (goSize.y) + (currentEntitySize.y) &&
+			    distance < (goSize.z) + (currentEntitySize.z)) {
+
+				//if we find any overlap, reset loop with another random value
+				currentPosOffset = ProduceRandomOffset (goSize, scale);
+				i = 0;
+
+				//if this random fails too often, expand the possible area we can random from - ESCAPE STRATERGY
+				counter++;
+				if (counter > counterLimit) {
+					scale++;
+					counter = 0;
+				}
+			}
+		}
+
+		//once the loop completes, it means we have a position which is gerater than the distance of our game object
+		//and all of the entites that are current active, checked individually.
+		return currentPosOffset;
+	}
+
+	private Vector3 FormulatePosition2 (GameObject go) // go is the object which has just been spawned
+	{
+		//set some local variables up
+		int counterLimit = 100;
+		int counter = 0;
+		float scale = 2.0f;
+
+		//save the size of the game object which has just been spawned
+		Vector3 goSize = go.GetComponentInChildren<MeshRenderer> ().bounds.size;
+
+		//set the possible range of randomed values to be equal to the size of the object which has just been spawned
+		posibleSpawningRange = goSize;
+
+		//Grab first random offset to check against all other objects
+		Vector3 currentPosOffset = ProduceRandomOffset (goSize, scale);
+
+		if (allSpawnedEntitiesPos.Count > 0) {
+			allSpawnedEntitiesPos.Sort ((v1, v2) => (v1 - go.transform.position).sqrMagnitude.CompareTo ((v2 - go.transform.position).sqrMagnitude));
+			float distance = Vector3.Distance (go.transform.position + currentPosOffset, allSpawnedEntitiesPos [0]);
+
+
+			while (distance < (goSize.x*2) && distance < (goSize.y*2) && distance < (goSize.z*2)) {
+
+				currentPosOffset = ProduceRandomOffset (goSize, scale);
+				allSpawnedEntitiesPos.Sort ((v1, v2) => (v1 - go.transform.position).sqrMagnitude.CompareTo ((v2 - go.transform.position).sqrMagnitude));
+				distance = Vector3.Distance (go.transform.position + currentPosOffset, allSpawnedEntitiesPos [0]);
+			
+				counter++;
+				if (counter > counterLimit) {
+					scale++;
+					counter = 0;
+				}
+			}
+		}
+	
+		//once the loop completes, it means we have a position which is gerater than the distance of our game object
+		//and all of the entites that are current active, checked individually.
+		return currentPosOffset;
+	}
